@@ -1,0 +1,430 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Edit Task | TaskFlow{% endblock %}
+
+{% block extra_css %}
+<!-- Flatpickr for Date Picker -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<!-- Custom CSS -->
+<link rel="stylesheet" href="{% static 'css/edit_task.css' %}">
+<style>
+    /* Adjust glass background to fit within the content block if needed */
+    .glass-background {
+        position: fixed;
+        width: 100vw;
+        height: 100vh;
+        top: 0;
+        left: 0;
+        z-index: -1;
+        overflow: hidden;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Glass Morphism Background -->
+<div class="glass-background">
+    <div class="glass-shape shape-1"></div>
+    <div class="glass-shape shape-2"></div>
+    <div class="glass-shape shape-3"></div>
+    <div class="glass-shape shape-4"></div>
+</div>
+
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-xxl-6 col-xl-7 col-lg-8 col-md-10 col-sm-12">
+            <!-- Header Section -->
+            <header class="edit-header-section">
+                <div class="header-content">
+                    <a href="{% url 'task_list' %}" class="back-button">
+                        <i class="fas fa-arrow-left-long"></i>
+                        <span>Back to Dashboard</span>
+                    </a>
+
+                    <div class="task-header-info">
+                        <div class="task-icon-container">
+                            <div class="task-icon">
+                                <i class="fas fa-pen-to-square"></i>
+                            </div>
+                            <div class="task-status-badge {% if task.completed %}completed{% else %}active{% endif %}">
+                                {% if task.completed %}
+                                <i class="fas fa-check-circle"></i>
+                                <span>Completed</span>
+                                {% else %}
+                                <i class="fas fa-clock"></i>
+                                <span>Active</span>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="task-meta-info">
+                            <h1>Edit Task</h1>
+                            <p class="task-subtitle">Update task details and manage your workflow</p>
+
+                            <div class="meta-timeline">
+                                <div class="timeline-item">
+                                    <i class="fas fa-plus-circle"></i>
+                                    <span>Created: <strong>{{ task.created_at|date:"F j, Y" }}</strong></span>
+                                </div>
+                                {% if task.updated_at %}
+                                <div class="timeline-item">
+                                    <i class="fas fa-sync-alt"></i>
+                                    <span>Updated: <strong>{{ task.updated_at|date:"F j, Y" }}</strong></span>
+                                </div>
+                                {% endif %}
+                                {% if task.completed %}
+                                <div class="timeline-item">
+                                    <i class="fas fa-check-double"></i>
+                                    <span>Completed: <strong>{{ task.completed_at|date:"F j, Y"|default:"Today"
+                                            }}</strong></span>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Main Edit Form -->
+            <main class="edit-main-section">
+                <form method="post" class="edit-task-form" id="editTaskForm">
+                    {% csrf_token %}
+
+                    <!-- Task Details Card -->
+                    <div class="form-card">
+                        <div class="card-header">
+                            <i class="fas fa-clipboard-list"></i>
+                            <h3>Task Details</h3>
+                        </div>
+
+                        <div class="card-body">
+                            <!-- Title Field -->
+                            <div class="form-group floating-group">
+                                <div class="input-header">
+                                    <label for="id_title" class="floating-label">
+                                        <i class="fas fa-heading"></i>
+                                        Task Title
+                                        <span class="required">*</span>
+                                    </label>
+                                    <span class="char-counter" id="titleCounter">0/120</span>
+                                </div>
+                                <div class="input-container">
+                                    {{ form.title }}
+                                    <div class="input-decoration"></div>
+                                </div>
+                                {% if form.title.errors %}
+                                <div class="error-container">
+                                    {% for error in form.title.errors %}
+                                    <span class="error-message">
+                                        <i class="fas fa-exclamation-circle"></i> {{ error }}
+                                    </span>
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Description Field -->
+                            <div class="form-group floating-group">
+                                <div class="input-header">
+                                    <label for="id_description" class="floating-label">
+                                        <i class="fas fa-align-left"></i>
+                                        Description
+                                    </label>
+                                    <span class="char-counter" id="descCounter">0/1000</span>
+                                </div>
+                                <div class="textarea-container">
+                                    {{ form.description }}
+                                    <div class="textarea-decoration"></div>
+                                </div>
+                                <div class="hint-text">
+                                    <i class="fas fa-lightbulb"></i>
+                                    Add clear instructions or context for this task
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Task Configuration Card -->
+                    <div class="form-card">
+                        <div class="card-header">
+                            <i class="fas fa-cog"></i>
+                            <h3>Configuration</h3>
+                        </div>
+
+                        <div class="card-body">
+                            <div class="configuration-grid">
+                                <!-- Status Toggle -->
+                                <div class="config-item status-toggle-item">
+                                    <div class="config-label">
+                                        <i class="fas fa-toggle-on"></i>
+                                        <div class="label-content">
+                                            <h4>Task Status</h4>
+                                            <p>Mark task as completed or active</p>
+                                        </div>
+                                    </div>
+                                    <div class="toggle-switch-large">
+                                        <input type="checkbox" name="completed" id="id_completed"
+                                            class="toggle-checkbox" {% if task.completed %}checked{% endif %}>
+                                        <label class="toggle-slider" for="id_completed">
+                                            <span class="toggle-text active">Active</span>
+                                            <span class="toggle-text completed">Completed</span>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <!-- Priority Selection -->
+                                <div class="config-item">
+                                    <div class="config-label">
+                                        <i class="fas fa-flag"></i>
+                                        <div class="label-content">
+                                            <h4>Priority Level</h4>
+                                            <p>Set task importance level</p>
+                                        </div>
+                                    </div>
+                                    <div class="priority-selector">
+                                        <div class="priority-option {% if task.priority == 'Low' or not task.priority %}active{% endif %}"
+                                            data-value="Low">
+                                            <div class="priority-indicator low"></div>
+                                            <div class="option-content">
+                                                <strong>Low</strong>
+                                                <small>Normal priority</small>
+                                            </div>
+                                        </div>
+                                        <div class="priority-option {% if task.priority == 'Medium' %}active{% endif %}"
+                                            data-value="Medium">
+                                            <div class="priority-indicator medium"></div>
+                                            <div class="option-content">
+                                                <strong>Medium</strong>
+                                                <small>Important</small>
+                                            </div>
+                                        </div>
+                                        <div class="priority-option {% if task.priority == 'High' %}active{% endif %}"
+                                            data-value="High">
+                                            <div class="priority-indicator high"></div>
+                                            <div class="option-content">
+                                                <strong>High</strong>
+                                                <small>Urgent</small>
+                                            </div>
+                                        </div>
+                                        <input type="hidden" name="priority" id="priorityInput"
+                                            value="{{ task.priority }}">
+
+                                    </div>
+                                </div>
+
+                                <!-- Due Date -->
+                                <div class="config-item">
+                                    <div class="config-label">
+                                        <i class="fas fa-calendar-day"></i>
+                                        <div class="label-content">
+                                            <h4>Due Date</h4>
+                                            <p>Set task deadline</p>
+                                        </div>
+                                    </div>
+                                    <div class="date-picker-container">
+                                        <div class="date-input-wrapper">
+                                            <i class="fas fa-calendar"></i>
+                                            <input type="text" id="due_date" name="due_date" class="date-picker-input"
+                                                placeholder="Select due date"
+                                                value="{{ task.due_date|date:'Y-m-d'|default:'' }}">
+                                            {% if task.due_date %}
+                                            <button type="button" class="clear-date-btn" onclick="clearDate()">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                            {% endif %}
+                                        </div>
+                                        <div class="date-actions">
+                                            <button type="button" class="date-quick-btn" data-days="1">
+                                                Tomorrow
+                                            </button>
+                                            <button type="button" class="date-quick-btn" data-days="7">
+                                                Next Week
+                                            </button>
+                                            <button type="button" class="date-quick-btn" data-days="30">
+                                                Next Month
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Task Metadata Card -->
+                    <div class="form-card">
+                        <div class="card-header">
+                            <i class="fas fa-tags"></i>
+                            <h3>Metadata</h3>
+                        </div>
+
+                        <div class="card-body">
+                            <!-- Tags -->
+                            <div class="metadata-section">
+                                <div class="section-header">
+                                    <h4><i class="fas fa-tags"></i> Tags</h4>
+                                    <p>Organize tasks with custom tags</p>
+                                </div>
+                                <div class="tags-input-section">
+                                    <div class="selected-tags" id="selectedTags">
+                                        <!-- Tags will be inserted here -->
+                                    </div>
+                                    <div class="tags-input-wrapper">
+                                        <input type="text" id="tagsInput" class="tags-input"
+                                            placeholder="Type and press Enter to add tags">
+                                        <div class="tags-suggestions">
+                                            <span class="suggested-tag" data-tag="work">
+                                                <i class="fas fa-briefcase"></i> Work
+                                            </span>
+                                            <span class="suggested-tag" data-tag="personal">
+                                                <i class="fas fa-user"></i> Personal
+                                            </span>
+                                            <span class="suggested-tag" data-tag="urgent">
+                                                <i class="fas fa-exclamation"></i> Urgent
+                                            </span>
+                                            <span class="suggested-tag" data-tag="shopping">
+                                                <i class="fas fa-shopping-cart"></i> Shopping
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <input type="hidden" name="tags" id="hiddenTags"
+                                        value="{{ task.tags|default:'[]' }}">
+                                </div>
+                            </div>
+
+                            <!-- Notes -->
+                            <div class="metadata-section">
+                                <div class="section-header">
+                                    <h4><i class="fas fa-sticky-note"></i> Notes</h4>
+                                    <p>Additional information or context</p>
+                                </div>
+                                <div class="notes-container">
+                                    <textarea id="notes" name="notes" class="notes-textarea"
+                                        placeholder="Add any additional notes or context for this task...">{{ task.notes|default:'' }}</textarea>
+                                    <div class="notes-toolbar">
+                                        <button type="button" class="toolbar-btn" data-format="bold">
+                                            <i class="fas fa-bold"></i>
+                                        </button>
+                                        <button type="button" class="toolbar-btn" data-format="italic">
+                                            <i class="fas fa-italic"></i>
+                                        </button>
+                                        <button type="button" class="toolbar-btn" data-format="list">
+                                            <i class="fas fa-list-ul"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Form Actions -->
+                    <div class="form-actions-section">
+                        <div class="preview-section">
+                            <button type="button" class="btn-preview" id="previewBtn">
+                                <i class="fas fa-eye"></i>
+                                <span>Preview Task</span>
+                            </button>
+                            <button type="button" class="btn-reset" onclick="resetForm()">
+                                <i class="fas fa-redo"></i>
+                                <span>Reset Form</span>
+                            </button>
+                        </div>
+
+                        <div class="submit-section">
+                            <button type="button" class="btn-cancel" onclick="confirmCancel()">
+                                <i class="fas fa-times"></i>
+                                Cancel
+                            </button>
+
+                            <div class="save-buttons">
+                                <button type="submit" name="save" class="btn-save-primary">
+                                    <i class="fas fa-save"></i>
+                                    Save Changes
+                                </button>
+
+                                <div class="save-dropdown">
+                                    <button type="button" class="btn-save-options">
+                                        <i class="fas fa-chevron-down"></i>
+                                    </button>
+                                    <div class="dropdown-menu">
+                                        <button type="submit" name="save_and_close" class="dropdown-item">
+                                            <i class="fas fa-check-circle"></i>
+                                            Save & Close
+                                        </button>
+                                        <button type="submit" name="save_and_new" class="dropdown-item">
+                                            <i class="fas fa-plus-circle"></i>
+                                            Save & New Task
+                                        </button>
+                                        <button type="submit" name="save_and_duplicate" class="dropdown-item">
+                                            <i class="fas fa-copy"></i>
+                                            Save & Duplicate
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </main>
+
+            <!-- Preview Modal -->
+            <div class="preview-modal" id="previewModal">
+                <div class="preview-modal-content">
+                    <div class="preview-modal-header">
+                        <h3>
+                            <i class="fas fa-file-alt"></i>
+                            Task Preview
+                        </h3>
+                        <button class="preview-close-btn" onclick="closePreview()">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="preview-modal-body" id="previewBody">
+                        <!-- Preview content will be inserted here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Confirmation Modal -->
+            <div class="confirmation-modal" id="confirmModal">
+                <div class="confirmation-modal-content">
+                    <div class="confirmation-icon">
+                        <i class="fas fa-exclamation-circle"></i>
+                    </div>
+                    <h4>Unsaved Changes</h4>
+                    <p>You have unsaved changes. Are you sure you want to leave?</p>
+                    <div class="confirmation-actions">
+                        <button class="btn-confirm-secondary" onclick="closeConfirmModal()">
+                            Continue Editing
+                        </button>
+                        <button class="btn-confirm-primary" onclick="discardChanges()">
+                            Discard Changes
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <footer class="edit-footer">
+                <div class="footer-content">
+                    <div class="footer-info">
+                        <i class="fas fa-info-circle"></i>
+                        <span>Changes are auto-saved locally every 2 seconds</span>
+                    </div>
+                    <div class="footer-actions">
+                        <button class="btn-clear-draft" onclick="clearDraft()">
+                            <i class="fas fa-trash-alt"></i>
+                            Clear Draft
+                        </button>
+                    </div>
+                </div>
+            </footer>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="{% static 'js/edit_task.js' %}"></script>
+{% endblock %}

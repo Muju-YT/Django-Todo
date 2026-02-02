@@ -1,0 +1,136 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Login | TaskFlow{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/style.css' %}">
+<link rel="stylesheet" href="{% static 'css/login.css' %}">
+{% endblock %}
+
+{% block content %}
+<!-- Background Elements -->
+<div class="background-elements">
+    <div class="circle circle-1"></div>
+    <div class="circle circle-2"></div>
+    <div class="circle circle-3"></div>
+    <div class="circle circle-4"></div>
+</div>
+
+<div class="container mt-5 mb-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="auth-card">
+                <div class="auth-header">
+                    <div class="auth-logo">
+                        <i class="fas fa-check-double"></i>
+                    </div>
+                    <h3 class="fw-bold mb-1"
+                        style="background: var(--primary-gradient); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;">
+                        Welcome Back</h3>
+                    <p class="text-secondary-theme mb-0">Sign in to continue to TaskFlow</p>
+                </div>
+
+                <div class="auth-body">
+                    <form method="post">
+                        {% csrf_token %}
+
+                        {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {% for error in form.non_field_errors %}
+                            {{ error }}
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+
+                        {% for field in form %}
+                        <div class="mb-4">
+                            <label for="{{ field.id_for_label }}"
+                                class="form-label text-secondary-theme small fw-bold text-uppercase">
+                                {% if 'username' in field.name %}
+                                Username
+                                {% elif 'password' in field.name %}
+                                Password
+                                {% else %}
+                                {{ field.label }}
+                                {% endif %}
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    {% if 'username' in field.name %}
+                                    <i class="fas fa-user"></i>
+                                    {% elif 'email' in field.name %}
+                                    <i class="fas fa-envelope"></i>
+                                    {% elif 'password' in field.name %}
+                                    <i class="fas fa-lock"></i>
+                                    {% else %}
+                                    <i class="fas fa-pencil-alt"></i>
+                                    {% endif %}
+                                </span>
+                                {{ field }}
+                            </div>
+                            {% if field.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in field.errors %}
+                                <i class="fas fa-exclamation-circle me-1"></i>{{ error }}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="rememberMe">
+                                <label class="form-check-label text-secondary-theme small" for="rememberMe">
+                                    Remember me
+                                </label>
+                            </div>
+                            <a href="#" class="small text-decoration-none" style="color: #667eea;">Forgot Password?</a>
+                        </div>
+
+                        <button type="submit" class="btn btn-auth mb-4">
+                            <i class="fas fa-sign-in-alt me-2"></i> Sign In
+                        </button>
+
+                        <div class="text-center mb-4">
+                            <span class="text-secondary-theme small">Or continue with</span>
+                        </div>
+
+                        <div class="row g-2 mb-4">
+                            <div class="col-6">
+                                <button type="button" class="social-btn">
+                                    <i class="fab fa-google text-danger"></i> Google
+                                </button>
+                            </div>
+                            <div class="col-6">
+                                <button type="button" class="social-btn">
+                                    <i class="fab fa-github text-dark"></i> GitHub
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="text-center border-top pt-4">
+                            <p class="mb-0 text-secondary-theme">Thinking of joining us?
+                                <a href="{% url 'register' %}" class="fw-bold text-decoration-none"
+                                    style="color: #667eea;">Create Account</a>
+                            </p>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Add Bootstrap classes to form fields dynamically
+    document.querySelectorAll('input').forEach(input => {
+        if (!input.classList.contains('form-check-input')) {
+            input.classList.add('form-control');
+        }
+    });
+</script>
+{% endblock %}

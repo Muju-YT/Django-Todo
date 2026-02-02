@@ -1,0 +1,231 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Register | TaskFlow{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/style.css' %}">
+<link rel="stylesheet" href="{% static 'css/login.css' %}">
+<style>
+    /* Specific styles for register page interactions */
+    .password-strength {
+        margin-top: 10px;
+        padding: 15px;
+        background: var(--bg-light);
+        border-radius: 10px;
+        border: 1px solid var(--border-color);
+        display: none;
+        /* Hidden by default until typing */
+    }
+
+    .password-strength.active {
+        display: block;
+    }
+
+    .strength-meter {
+        height: 6px;
+        background: #e2e8f0;
+        border-radius: 3px;
+        margin-top: 8px;
+        overflow: hidden;
+    }
+
+    .strength-bar {
+        height: 100%;
+        width: 0;
+        transition: width 0.3s ease, background-color 0.3s ease;
+    }
+
+    .password-strength.weak .strength-bar {
+        width: 33%;
+        background-color: #ff5858;
+    }
+
+    .password-strength.fair .strength-bar {
+        width: 66%;
+        background-color: #fee140;
+    }
+
+    .password-strength.good .strength-bar {
+        width: 100%;
+        background-color: #43e97b;
+    }
+
+    .strength-text {
+        font-size: 0.8rem;
+        margin-top: 5px;
+        font-weight: 500;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Background Elements -->
+<div class="background-elements">
+    <div class="circle circle-1"></div>
+    <div class="circle circle-2" style="right: 10%; top: 50%;"></div>
+    <div class="circle circle-3"></div>
+    <div class="circle circle-4"></div>
+</div>
+
+<div class="container mt-5 mb-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="auth-card">
+                <div class="auth-header">
+                    <div class="auth-logo">
+                        <i class="fas fa-user-plus"></i>
+                    </div>
+                    <h3 class="fw-bold mb-1 auth-title-gradient">Join TaskFlow</h3>
+                    <p class="text-secondary-theme mb-0">Start your productivity journey today</p>
+                </div>
+
+                <div class="auth-body">
+                    <form method="post" enctype="multipart/form-data" id="registerForm">
+                        {% csrf_token %}
+
+                        {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {% for error in form.non_field_errors %}
+                            {{ error }}
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+
+                        <div class="row">
+                            {% for field in form %}
+                            <div
+                                class="col-12 {% if field.name == 'first_name' or field.name == 'last_name' %}col-md-6{% endif %} mb-4 form-section">
+                                <label for="{{ field.id_for_label }}"
+                                    class="form-label text-secondary-theme small fw-bold text-uppercase">
+                                    {{ field.label }}
+                                    {% if field.field.required %}<span class="text-danger">*</span>{% endif %}
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text">
+                                        {% if 'username' in field.name %}
+                                        <i class="fas fa-user"></i>
+                                        {% elif 'email' in field.name %}
+                                        <i class="fas fa-envelope"></i>
+                                        {% elif 'password' in field.name %}
+                                        <i class="fas fa-lock"></i>
+                                        {% elif 'phone' in field.name %}
+                                        <i class="fas fa-phone"></i>
+                                        {% else %}
+                                        <i class="fas fa-pencil-alt"></i>
+                                        {% endif %}
+                                    </span>
+                                    {{ field }}
+                                    {% if 'password' in field.name %}
+                                    <button type="button"
+                                        class="btn btn-outline-light border text-secondary-theme password-toggle"
+                                        data-target="{{ field.id_for_label }}"
+                                        style="border-left: none; border-color: var(--border-color) !important;">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    {% endif %}
+                                </div>
+                                <!-- Help text removed as per user request -->
+                                <!-- 
+                                {% if field.help_text %}
+                                <div class="form-text small text-secondary-theme"><i class="fas fa-info-circle me-1"></i>{{
+                                    field.help_text }}</div>
+                                {% endif %} 
+                                -->
+                                {% if field.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in field.errors %}
+                                    <i class="fas fa-exclamation-circle me-1"></i>{{ error }}
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+
+                                {% if field.name == 'password1' %}
+                                <div id="passwordStrength" class="password-strength">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span class="strength-text text-secondary-theme">Password Strength</span>
+                                        <span class="strength-text fw-bold" id="strengthText">Weak</span>
+                                    </div>
+                                    <div class="strength-meter">
+                                        <div class="strength-bar"></div>
+                                    </div>
+                                </div>
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="form-check mb-4">
+                            <input class="form-check-input" type="checkbox" id="termsCheckbox" required>
+                            <label class="form-check-label text-secondary-theme small" for="termsCheckbox">
+                                I agree to the <a href="#" style="color: #667eea;">Terms of Service</a> and <a href="#"
+                                    style="color: #667eea;">Privacy Policy</a>
+                            </label>
+                        </div>
+
+                        <button type="submit" class="btn btn-auth mb-4 register-button">
+                            <span class="btn-text"><i class="fas fa-user-plus me-2"></i> Create Account</span>
+                            <div class="spinner-border spinner-border-sm ms-2" role="status" style="display: none;">
+                            </div>
+                        </button>
+
+                        <div class="text-center mb-4">
+                            <span class="text-secondary-theme small">Or sign up with</span>
+                        </div>
+
+                        <div class="row g-2 mb-4">
+                            <div class="col-4">
+                                <button type="button" class="social-btn" title="Google">
+                                    <i class="fab fa-google text-danger"></i>
+                                </button>
+                            </div>
+                            <div class="col-4">
+                                <button type="button" class="social-btn" title="Facebook">
+                                    <i class="fab fa-facebook-f text-primary"></i>
+                                </button>
+                            </div>
+                            <div class="col-4">
+                                <button type="button" class="social-btn" title="Twitter">
+                                    <i class="fab fa-twitter text-info"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="text-center border-top pt-4">
+                            <p class="mb-0 text-secondary-theme">Already have an account?
+                                <a href="{% url 'login' %}" class="fw-bold text-decoration-none"
+                                    style="color: #667eea;">Sign In</a>
+                            </p>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/register.js' %}"></script>
+<script>
+    // Add Bootstrap classes to form fields dynamically
+    document.querySelectorAll('input, select, textarea').forEach(input => {
+        if (!input.classList.contains('form-check-input')) {
+            input.classList.add('form-control');
+            // Remove default border since we have input-group wrapper handling it? 
+            // Better to keep simple. auth.css handles .form-control inside .input-group
+            input.style.borderLeft = 'none';
+        }
+    });
+
+    // Handle password strength visibility
+    const pwdInput = document.getElementById('id_password1');
+    const pwdStrength = document.getElementById('passwordStrength');
+    if (pwdInput && pwdStrength) {
+        pwdInput.addEventListener('input', function () {
+            if (this.value.length > 0) pwdStrength.classList.add('active');
+            else pwdStrength.classList.remove('active');
+        });
+    }
+</script>
+{% endblock %}

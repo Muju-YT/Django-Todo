@@ -1,0 +1,153 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}My Profile - TaskFlow{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/profile.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid mb-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-12 max-width-1200">
+            <a href="{% url 'task_list' %}" class="btn-back">
+                <i class="fas fa-arrow-left"></i> Back to Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+<form method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div class="row justify-content-center">
+        <!-- Profile Card (Left Column) -->
+        <div class="col-lg-4 mb-4">
+            <div class="profile-card text-center">
+                <div class="profile-header">
+                    <div class="profile-image-container">
+                        {% if user.profile.profile_image %}
+                        <img src="{{ user.profile.profile_image.url }}" alt="{{ user.username }}"
+                            class="profile-img-lg">
+                        {% else %}
+                        <div class="profile-icon-placeholder">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        {% endif %}
+                        <label for="id_profile_image" class="edit-avatar-btn" title="Change Avatar">
+                            <i class="fas fa-camera"></i>
+                        </label>
+                    </div>
+                    <h2 class="profile-username">{{ user.username }}</h2>
+                    <p class="profile-email">{{ user.email }}</p>
+
+                    <div class="profile-stats">
+                        <div class="stat-item">
+                            <span class="stat-value">{{ tasks_total }}</span>
+                            <span class="stat-label">Tasks</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value">{{ tasks_active }}</span>
+                            <span class="stat-label">Active</span>
+                        </div>
+                    </div>
+
+                    <!-- Extra Save Button for Visibility -->
+                    <div class="mt-4 pb-4">
+                        <button type="submit" class="btn-save w-75 mx-auto">
+                            <i class="fas fa-save"></i> Save Profile
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Edit Details Form (Right Column) -->
+        <div class="col-lg-8">
+            <div class="form-card">
+                <div class="card-header">
+                    <i class="fas fa-user-edit"></i>
+                    <h3>Edit Profile</h3>
+                </div>
+                <div class="card-body">
+
+                    {% if p_form.errors %}
+                    <div class="alert alert-danger">
+                        {{ p_form.errors }}
+                    </div>
+                    {% endif %}
+
+                    <!-- User Info Section -->
+                    <h5 class="section-title">Personal Information</h5>
+                    <div class="row">
+                        <div class="col-md-6 form-group">
+                            <label class="form-label">Username</label>
+                            {{ u_form.username }}
+                            {% if u_form.username.errors %}
+                            <div class="error-message">{{ u_form.username.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6 form-group">
+                            <label class="form-label">Email Address</label>
+                            {{ u_form.email }}
+                            {% if u_form.email.errors %}
+                            <div class="error-message">{{ u_form.email.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 form-group">
+                            <label class="form-label">First Name</label>
+                            {{ u_form.first_name }}
+                        </div>
+                        <div class="col-md-6 form-group">
+                            <label class="form-label">Last Name</label>
+                            {{ u_form.last_name }}
+                        </div>
+                    </div>
+
+                    <!-- Hidden File Input (triggered by camera icon) -->
+                    <div class="d-none">
+                        {{ p_form.profile_image }}
+                    </div>
+
+                    <div class="form-actions mt-4">
+                        <button type="submit" class="btn-save">
+                            <i class="fas fa-save"></i> Save Changes
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Trigger file input when camera icon is clicked
+    document.querySelector('.edit-avatar-btn').addEventListener('click', function (e) {
+        e.preventDefault();
+        const fileInput = document.querySelector('input[type="file"]');
+        if (fileInput) fileInput.click();
+    });
+
+    // Just ensure the file is selected, no auto-submit since we added explicit save buttons
+    document.querySelector('input[type="file"]').addEventListener('change', function () {
+        if (this.files && this.files[0]) {
+            // Provide feedback that file is selected
+            const beans = document.querySelectorAll('.btn-save');
+            beans.forEach(btn => {
+                btn.innerHTML = '<i class="fas fa-check"></i> Image Ready - Click to Save';
+                btn.classList.add('btn-success'); // optional bootstrap class for green
+            });
+        }
+    });
+
+
+    // Add bootstrap classes to form fields manually since we aren't using crispy forms yet
+    document.querySelectorAll('input[type="text"], input[type="email"]').forEach(input => {
+        input.classList.add('form-control');
+        input.classList.add('custom-input');
+    });
+</script>
+{% endblock %}
